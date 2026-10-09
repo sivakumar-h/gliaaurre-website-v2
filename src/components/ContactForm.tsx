@@ -79,7 +79,7 @@ export function ContactForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to transmit message. Please try again.");
+        throw new Error(data.error || "Failed to send message. Please try again.");
       }
 
       setIsSuccess(true);
@@ -115,7 +115,7 @@ export function ContactForm() {
 
         <div className="space-y-2">
           <h3 className="text-2xl font-light text-white">
-            Message Transmitted Successfully
+            Message Sent Successfully
           </h3>
           <p className="text-sm text-slate-300 max-w-md mx-auto leading-relaxed font-light">
             Thank you for reaching out. We have received your inquiry and our team will get back to you promptly.
@@ -245,7 +245,7 @@ export function ContactForm() {
             )
           }
         >
-          {isSubmitting ? "Transmitting Message..." : "Submit Enquiry"}
+          {isSubmitting ? "Sending Message..." : "Submit Enquiry"}
         </Button>
       </div>
     </form>
