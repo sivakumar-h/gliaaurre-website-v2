@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, UploadCloud, FileText, Trash2, CheckCircle2, AlertCircle, Loader2, Send, Lock } from "lucide-react";
+import { X, UploadCloud, FileText, Trash2, CheckCircle2, AlertCircle, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/Button";
 import { JOB_OPENINGS, JobOpening } from "@/lib/careers-data";
 import { cn } from "@/lib/utils";
@@ -16,16 +16,22 @@ interface FormState {
   name: string;
   email: string;
   phone: string;
-  portfolio: string;
+  totalExperience: string;
+  currentCtc: string;
+  expectedCtc: string;
   jobId: string;
-  message: string;
+  briefIntroduction: string;
 }
 
 interface FormErrors {
   name?: string;
   email?: string;
+  phone?: string;
+  totalExperience?: string;
+  currentCtc?: string;
+  expectedCtc?: string;
   jobId?: string;
-  message?: string;
+  briefIntroduction?: string;
   resume?: string;
 }
 
@@ -39,9 +45,11 @@ export function JobApplicationModal({
     name: "",
     email: "",
     phone: "",
-    portfolio: "",
-    jobId: selectedJob?.id || "",
-    message: "",
+    totalExperience: "",
+    currentCtc: "",
+    expectedCtc: "",
+    jobId: selectedJob?.id || "mechanical-design-engineer",
+    briefIntroduction: "",
   });
 
   const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -143,18 +151,27 @@ export function JobApplicationModal({
       newErrors.email = "Please provide a valid email address.";
     }
 
-    if (!formData.jobId) {
-      newErrors.jobId = "Please select an opening.";
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Please enter your contact number.";
     }
 
-    if (!formData.message.trim()) {
-      newErrors.message = "Please include a brief message or statement.";
-    } else if (formData.message.trim().length < 15) {
-      newErrors.message = "Please provide at least 15 characters.";
+    if (!formData.totalExperience.trim()) {
+      newErrors.totalExperience = "Please specify your total experience (e.g., 2 Years).";
+    }
+
+    if (!formData.jobId) {
+      newErrors.jobId = "Please select a target position.";
+    }
+
+    if (
+      formData.briefIntroduction.trim().length > 0 &&
+      formData.briefIntroduction.trim().length < 15
+    ) {
+      newErrors.briefIntroduction = "Please provide at least 15 characters.";
     }
 
     if (!resumeFile) {
-      newErrors.resume = "Please upload your resume (PDF or DOC/DOCX).";
+      newErrors.resume = "Please attach your resume (PDF or DOC/DOCX).";
     }
 
     setErrors(newErrors);
@@ -175,10 +192,12 @@ export function JobApplicationModal({
       const data = new FormData();
       data.append("name", formData.name);
       data.append("email", formData.email);
-      data.append("phone", formData.phone || "");
-      data.append("portfolio", formData.portfolio || "");
+      data.append("phone", formData.phone);
+      data.append("totalExperience", formData.totalExperience);
+      data.append("currentCtc", formData.currentCtc);
+      data.append("expectedCtc", formData.expectedCtc);
       data.append("jobId", formData.jobId);
-      data.append("message", formData.message);
+      data.append("briefIntroduction", formData.briefIntroduction);
       if (resumeFile) {
         data.append("resume", resumeFile);
       }
@@ -211,9 +230,11 @@ export function JobApplicationModal({
       name: "",
       email: "",
       phone: "",
-      portfolio: "",
-      jobId: "",
-      message: "",
+      totalExperience: "",
+      currentCtc: "",
+      expectedCtc: "",
+      jobId: selectedJob?.id || "mechanical-design-engineer",
+      briefIntroduction: "",
     });
     setResumeFile(null);
     setErrors({});
@@ -236,7 +257,7 @@ export function JobApplicationModal({
           <div className="flex items-center gap-2.5">
             <span className="w-2 h-2 rounded-full bg-accent-cyan animate-pulse" />
             <span className="text-xs font-mono tracking-widest text-slate-300 uppercase" id="modal-title">
-              CANDIDATE APPLICATION // DIRECT TO LEADERSHIP
+              JOB APPLICATION // {selectedJob ? selectedJob.title.toUpperCase() : "ENGINEERING PORTAL"}
             </span>
           </div>
           <button
@@ -258,10 +279,10 @@ export function JobApplicationModal({
 
               <div className="space-y-2 max-w-md mx-auto">
                 <h3 className="text-2xl font-light text-white">
-                  Application Transmitted
+                  Application Submitted Successfully
                 </h3>
                 <p className="text-sm text-slate-300 leading-relaxed font-light">
-                  Thank you for applying to GliaAurre. Our engineering leadership team has received your application and resume directly. We review every submission with care and will follow up with you.
+                  Thank you for applying to GliaAurre. Our engineering and recruitment team has received your application and attached resume. We will review your profile and reach out shortly.
                 </p>
               </div>
 
@@ -280,7 +301,7 @@ export function JobApplicationModal({
                 </div>
               )}
 
-              {/* Target Opening Selection */}
+              {/* Target Position Selection */}
               <div className="space-y-1.5">
                 <label
                   htmlFor="jobId"
@@ -297,16 +318,13 @@ export function JobApplicationModal({
                     }
                     className="w-full px-4 py-2.5 bg-surface-50 border border-border-subtle hover:border-border-medium text-sm text-foreground rounded transition-colors focus:outline-none focus:ring-1 focus:ring-accent-cyan appearance-none cursor-pointer"
                   >
-                    <option value="" disabled>
-                      Select an opening...
-                    </option>
                     {JOB_OPENINGS.map((job) => (
                       <option key={job.id} value={job.id} className="bg-surface-100 text-foreground">
-                        {job.title} ({job.department})
+                        {job.title} — {job.location}
                       </option>
                     ))}
                     <option value="general-inquiry" className="bg-surface-100 text-foreground">
-                      General Engineering Exploration / Quiet Rebel
+                      General Engineering Exploration / Other
                     </option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-xs">
@@ -334,7 +352,7 @@ export function JobApplicationModal({
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    placeholder="e.g. Elena Vance"
+                    placeholder="e.g. John Doe"
                     className={cn(
                       "w-full px-4 py-2.5 bg-surface-50 border text-sm text-foreground placeholder:text-slate-600 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-accent-cyan",
                       errors.name ? "border-red-500/60" : "border-border-subtle hover:border-border-medium"
@@ -371,14 +389,14 @@ export function JobApplicationModal({
                 </div>
               </div>
 
-              {/* Phone & Portfolio Row */}
+              {/* Contact Number & Total Experience Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label
                     htmlFor="cand-phone"
-                    className="block text-xs font-mono tracking-wider text-slate-400 uppercase"
+                    className="block text-xs font-mono tracking-wider text-slate-300 uppercase"
                   >
-                    Phone / Signal <span className="text-slate-500">(Optional)</span>
+                    Contact Number <span className="text-accent-cyan">*</span>
                   </label>
                   <input
                     id="cand-phone"
@@ -387,35 +405,100 @@ export function JobApplicationModal({
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    placeholder="+1 (555) 000-0000"
-                    className="w-full px-4 py-2.5 bg-surface-50 border border-border-subtle hover:border-border-medium text-sm text-foreground placeholder:text-slate-600 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-accent-cyan"
+                    placeholder="+91 9876543210"
+                    className={cn(
+                      "w-full px-4 py-2.5 bg-surface-50 border text-sm text-foreground placeholder:text-slate-600 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-accent-cyan",
+                      errors.phone ? "border-red-500/60" : "border-border-subtle hover:border-border-medium"
+                    )}
                   />
+                  {errors.phone && (
+                    <p className="text-[11px] font-mono text-red-400">{errors.phone}</p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
                   <label
-                    htmlFor="cand-portfolio"
-                    className="block text-xs font-mono tracking-wider text-slate-400 uppercase"
+                    htmlFor="cand-experience"
+                    className="block text-xs font-mono tracking-wider text-slate-300 uppercase"
                   >
-                    Portfolio / GitHub / Link <span className="text-slate-500">(Optional)</span>
+                    Total Experience <span className="text-accent-cyan">*</span>
                   </label>
                   <input
-                    id="cand-portfolio"
-                    type="url"
-                    value={formData.portfolio}
+                    id="cand-experience"
+                    type="text"
+                    value={formData.totalExperience}
                     onChange={(e) =>
-                      setFormData({ ...formData, portfolio: e.target.value })
+                      setFormData({ ...formData, totalExperience: e.target.value })
                     }
-                    placeholder="https://github.com/..."
-                    className="w-full px-4 py-2.5 bg-surface-50 border border-border-subtle hover:border-border-medium text-sm text-foreground placeholder:text-slate-600 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-accent-cyan"
+                    placeholder="e.g. 2 Years / 1.5 Years"
+                    className={cn(
+                      "w-full px-4 py-2.5 bg-surface-50 border text-sm text-foreground placeholder:text-slate-600 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-accent-cyan",
+                      errors.totalExperience ? "border-red-500/60" : "border-border-subtle hover:border-border-medium"
+                    )}
                   />
+                  {errors.totalExperience && (
+                    <p className="text-[11px] font-mono text-red-400">{errors.totalExperience}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Current CTC & Expected CTC Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="cand-current-ctc"
+                    className="block text-xs font-mono tracking-wider text-slate-300 uppercase"
+                  >
+                    Current CTC <span className="text-slate-500 normal-case">(Optional)</span>
+                  </label>
+                  <input
+                    id="cand-current-ctc"
+                    type="text"
+                    value={formData.currentCtc}
+                    onChange={(e) =>
+                      setFormData({ ...formData, currentCtc: e.target.value })
+                    }
+                    placeholder="e.g. 5.5 LPA / N/A"
+                    className={cn(
+                      "w-full px-4 py-2.5 bg-surface-50 border text-sm text-foreground placeholder:text-slate-600 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-accent-cyan",
+                      errors.currentCtc ? "border-red-500/60" : "border-border-subtle hover:border-border-medium"
+                    )}
+                  />
+                  {errors.currentCtc && (
+                    <p className="text-[11px] font-mono text-red-400">{errors.currentCtc}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="cand-expected-ctc"
+                    className="block text-xs font-mono tracking-wider text-slate-300 uppercase"
+                  >
+                    Expected CTC <span className="text-slate-500 normal-case">(Optional)</span>
+                  </label>
+                  <input
+                    id="cand-expected-ctc"
+                    type="text"
+                    value={formData.expectedCtc}
+                    onChange={(e) =>
+                      setFormData({ ...formData, expectedCtc: e.target.value })
+                    }
+                    placeholder="e.g. 8 LPA"
+                    className={cn(
+                      "w-full px-4 py-2.5 bg-surface-50 border text-sm text-foreground placeholder:text-slate-600 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-accent-cyan",
+                      errors.expectedCtc ? "border-red-500/60" : "border-border-subtle hover:border-border-medium"
+                    )}
+                  />
+                  {errors.expectedCtc && (
+                    <p className="text-[11px] font-mono text-red-400">{errors.expectedCtc}</p>
+                  )}
                 </div>
               </div>
 
               {/* Resume File Upload Dropzone */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-mono tracking-wider text-slate-300 uppercase">
-                  Resume / CV Document <span className="text-accent-cyan">*</span>
+                  Resume Attachment <span className="text-accent-cyan">*</span>
                 </label>
 
                 <input
@@ -467,7 +550,7 @@ export function JobApplicationModal({
                   >
                     <UploadCloud className="w-7 h-7 text-slate-400 group-hover:text-accent-cyan" />
                     <div className="text-xs text-slate-300">
-                      <span className="text-accent-cyan font-medium">Click to upload</span> or drag and drop
+                      <span className="text-accent-cyan font-medium">Click to upload resume</span> or drag and drop
                     </div>
                     <div className="text-[10px] font-mono text-slate-500">
                       PDF, DOC, DOCX (Max 10 MB)
@@ -480,64 +563,58 @@ export function JobApplicationModal({
                 )}
               </div>
 
-              {/* Message / Cover Note */}
+              {/* Brief Introduction */}
               <div className="space-y-1.5">
                 <label
-                  htmlFor="cand-message"
+                  htmlFor="cand-intro"
                   className="block text-xs font-mono tracking-wider text-slate-300 uppercase"
                 >
-                  Tell us about yourself & what you build <span className="text-accent-cyan">*</span>
+                  Brief Introduction <span className="text-slate-500 normal-case">(Optional)</span>
                 </label>
                 <textarea
-                  id="cand-message"
+                  id="cand-intro"
                   rows={4}
-                  value={formData.message}
+                  value={formData.briefIntroduction}
                   onChange={(e) =>
-                    setFormData({ ...formData, message: e.target.value })
+                    setFormData({ ...formData, briefIntroduction: e.target.value })
                   }
-                  placeholder="Describe your technical background, what excites you about hardware/signal processing, or projects you’ve built..."
+                  placeholder="Tell us about your background, relevant projects (e.g. 3D printing, CAD, CNC prototyping), and what interests you about GliaAurre..."
                   className={cn(
                     "w-full px-4 py-2.5 bg-surface-50 border text-sm text-foreground placeholder:text-slate-600 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-accent-cyan resize-y",
-                    errors.message ? "border-red-500/60" : "border-border-subtle hover:border-border-medium"
+                    errors.briefIntroduction ? "border-red-500/60" : "border-border-subtle hover:border-border-medium"
                   )}
                 />
-                {errors.message && (
-                  <p className="text-[11px] font-mono text-red-400">{errors.message}</p>
+                {errors.briefIntroduction && (
+                  <p className="text-[11px] font-mono text-red-400">{errors.briefIntroduction}</p>
                 )}
               </div>
 
-              <div className="pt-2 flex items-center justify-between border-t border-border-subtle">
-                <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-400">
-                  <Lock className="w-3.5 h-3.5 text-accent-cyan" />
-                  <span>DIRECT TRANSMISSION</span>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="md"
-                    onClick={onClose}
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="md"
-                    disabled={isSubmitting}
-                    icon={
-                      isSubmitting ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Send className="w-3.5 h-3.5" />
-                      )
-                    }
-                  >
-                    {isSubmitting ? "Transmitting..." : "Submit Application"}
-                  </Button>
-                </div>
+              {/* Action Buttons */}
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-border-subtle">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="md"
+                  onClick={onClose}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  disabled={isSubmitting}
+                  icon={
+                    isSubmitting ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5" />
+                    )
+                  }
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Application"}
+                </Button>
               </div>
             </form>
           )}

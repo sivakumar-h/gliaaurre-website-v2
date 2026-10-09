@@ -3,10 +3,12 @@ interface EmailPayload {
   subject: string;
   candidateName: string;
   candidateEmail: string;
-  candidatePhone?: string;
-  portfolioUrl?: string;
+  candidatePhone: string;
+  totalExperience: string;
+  currentCtc: string;
+  expectedCtc: string;
   jobTitle: string;
-  message: string;
+  briefIntroduction: string;
   resumeFileName: string;
   resumeFileSize: number;
   resumeFileBase64?: string;
@@ -20,9 +22,11 @@ export async function sendApplicationEmail(payload: EmailPayload): Promise<{ suc
     candidateName,
     candidateEmail,
     candidatePhone,
-    portfolioUrl,
+    totalExperience,
+    currentCtc,
+    expectedCtc,
     jobTitle,
-    message,
+    briefIntroduction,
     resumeFileName,
     resumeFileSize,
     resumeFileBase64,
@@ -30,9 +34,8 @@ export async function sendApplicationEmail(payload: EmailPayload): Promise<{ suc
   } = payload;
 
   const resendApiKey = process.env.RESEND_API_KEY;
-  const sendgridApiKey = process.env.SENDGRID_API_KEY;
 
-  // 1. If Resend API is configured
+  // 1. If Resend API key is configured
   if (resendApiKey) {
     try {
       const formattedSize = (resumeFileSize / (1024 * 1024)).toFixed(2) + " MB";
@@ -57,21 +60,50 @@ export async function sendApplicationEmail(payload: EmailPayload): Promise<{ suc
           reply_to: candidateEmail,
           subject: subject,
           html: `
-            <div style="font-family: monospace, sans-serif; background: #08090C; color: #F4F6F8; padding: 24px; border-radius: 8px;">
-              <h2 style="color: #00E5FF; margin-bottom: 4px;">New Candidate Application</h2>
-              <p style="color: #94A3B8; font-size: 13px; margin-top: 0;">GliaAurre Engineering Portal</p>
-              <hr style="border: 0; border-top: 1px solid #222933; margin: 16px 0;" />
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #08090C; color: #F4F6F8; padding: 32px; border-radius: 12px; max-width: 600px; margin: 0 auto; border: 1px solid #222933;">
+              <div style="border-bottom: 1px solid #222933; padding-bottom: 16px; margin-bottom: 24px;">
+                <h2 style="color: #00E5FF; margin: 0 0 6px 0; font-size: 20px; letter-spacing: -0.5px;">New Job Application Received</h2>
+                <p style="color: #94A3B8; font-size: 12px; font-family: monospace; margin: 0;">GLIAAURRE ENGINEERING & RECRUITMENT PORTAL</p>
+              </div>
               
-              <p><strong>Target Role:</strong> <span style="color: #00E5FF;">${jobTitle}</span></p>
-              <p><strong>Candidate Name:</strong> ${candidateName}</p>
-              <p><strong>Email Address:</strong> <a href="mailto:${candidateEmail}" style="color: #00E5FF;">${candidateEmail}</a></p>
-              ${candidatePhone ? `<p><strong>Phone:</strong> ${candidatePhone}</p>` : ""}
-              ${portfolioUrl ? `<p><strong>Portfolio / GitHub:</strong> <a href="${portfolioUrl}" style="color: #00E5FF;">${portfolioUrl}</a></p>` : ""}
-              <p><strong>Resume File:</strong> ${resumeFileName} (${formattedSize})</p>
-              
-              <div style="margin-top: 16px; background: #13161C; padding: 16px; border-radius: 6px; border: 1px solid #222933;">
-                <p style="color: #94A3B8; font-size: 12px; text-transform: uppercase; margin-top: 0;">Candidate Statement:</p>
-                <p style="white-space: pre-wrap; font-family: sans-serif; font-size: 14px; line-height: 1.5;">${message}</p>
+              <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 8px 0; color: #94A3B8; width: 140px; font-family: monospace; font-size: 12px;">POSITION:</td>
+                  <td style="padding: 8px 0; color: #00E5FF; font-weight: 600;">${jobTitle}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #94A3B8; font-family: monospace; font-size: 12px;">APPLICANT:</td>
+                  <td style="padding: 8px 0; color: #FFFFFF; font-weight: 500;">${candidateName}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #94A3B8; font-family: monospace; font-size: 12px;">EMAIL:</td>
+                  <td style="padding: 8px 0;"><a href="mailto:${candidateEmail}" style="color: #00E5FF; text-decoration: none;">${candidateEmail}</a></td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #94A3B8; font-family: monospace; font-size: 12px;">CONTACT NUMBER:</td>
+                  <td style="padding: 8px 0; color: #FFFFFF;">${candidatePhone || "Not provided"}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #94A3B8; font-family: monospace; font-size: 12px;">TOTAL EXPERIENCE:</td>
+                  <td style="padding: 8px 0; color: #FFFFFF;">${totalExperience || "Not provided"}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #94A3B8; font-family: monospace; font-size: 12px;">CURRENT CTC:</td>
+                  <td style="padding: 8px 0; color: #FFFFFF;">${currentCtc || "Not provided"}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #94A3B8; font-family: monospace; font-size: 12px;">EXPECTED CTC:</td>
+                  <td style="padding: 8px 0; color: #FFFFFF;">${expectedCtc || "Not provided"}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #94A3B8; font-family: monospace; font-size: 12px;">RESUME ATTACHMENT:</td>
+                  <td style="padding: 8px 0; color: #10B981; font-weight: 500;">${resumeFileName} (${formattedSize})</td>
+                </tr>
+              </table>
+
+              <div style="background: #13161C; padding: 20px; border-radius: 8px; border: 1px solid #222933; margin-top: 16px;">
+                <p style="color: #94A3B8; font-size: 11px; font-family: monospace; text-transform: uppercase; margin: 0 0 10px 0;">Brief Introduction & Statement:</p>
+                <p style="white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #E2E8F0; margin: 0;">${briefIntroduction || "Not provided"}</p>
               </div>
             </div>
           `,
@@ -90,16 +122,17 @@ export async function sendApplicationEmail(payload: EmailPayload): Promise<{ suc
 
   // 2. Structured Server Logging for Observability & Development
   console.log("==================================================");
-  console.log("📥 NEW JOB APPLICATION RECEIVED FOR WEBSITE OWNER");
+  console.log("📥 NEW JOB APPLICATION RECEIVED FOR HR / RECRUITMENT");
   console.log("==================================================");
   console.log(`To: ${Array.isArray(to) ? to.join(", ") : to}`);
   console.log(`Subject: ${subject}`);
   console.log(`Role: ${jobTitle}`);
   console.log(`Candidate: ${candidateName} <${candidateEmail}>`);
-  if (candidatePhone) console.log(`Phone: ${candidatePhone}`);
-  if (portfolioUrl) console.log(`Portfolio: ${portfolioUrl}`);
+  console.log(`Phone: ${candidatePhone}`);
+  console.log(`Total Experience: ${totalExperience}`);
+  console.log(`Current CTC: ${currentCtc} | Expected CTC: ${expectedCtc}`);
   console.log(`Resume: ${resumeFileName} (${(resumeFileSize / 1024).toFixed(1)} KB)`);
-  console.log(`Message:\n${message}`);
+  console.log(`Brief Introduction:\n${briefIntroduction}`);
   console.log("==================================================");
 
   return { success: true, id: "mock-" + Date.now() };
@@ -109,13 +142,12 @@ interface ContactEmailPayload {
   to: string | string[];
   name: string;
   email: string;
-  organization: string;
-  inquiryType: string;
+  phone: string;
   message: string;
 }
 
 export async function sendContactEmail(payload: ContactEmailPayload): Promise<{ success: boolean; id?: string }> {
-  const { to, name, email, organization, inquiryType, message } = payload;
+  const { to, name, email, phone, message } = payload;
 
   const resendApiKey = process.env.RESEND_API_KEY;
 
@@ -131,21 +163,32 @@ export async function sendContactEmail(payload: ContactEmailPayload): Promise<{ 
           from: process.env.FROM_EMAIL || "GliaAurre Contact <contact@gliaaurre.com>",
           to: Array.isArray(to) ? to : [to],
           reply_to: email,
-          subject: `[New Inquiry] ${inquiryType} - ${name}`,
+          subject: `[New Website Inquiry] ${name}`,
           html: `
-            <div style="font-family: monospace, sans-serif; background: #08090C; color: #F4F6F8; padding: 24px; border-radius: 8px;">
-              <h2 style="color: #00E5FF; margin-bottom: 4px;">New Contact Inquiry</h2>
-              <p style="color: #94A3B8; font-size: 13px; margin-top: 0;">GliaAurre Engineering Portal</p>
-              <hr style="border: 0; border-top: 1px solid #222933; margin: 16px 0;" />
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #08090C; color: #F4F6F8; padding: 32px; border-radius: 12px; max-width: 600px; margin: 0 auto; border: 1px solid #222933;">
+              <div style="border-bottom: 1px solid #222933; padding-bottom: 16px; margin-bottom: 24px;">
+                <h2 style="color: #00E5FF; margin: 0 0 6px 0; font-size: 20px;">New Contact Inquiry</h2>
+                <p style="color: #94A3B8; font-size: 12px; font-family: monospace; margin: 0;">GLIAAURRE OFFICIAL COMMUNICATIONS</p>
+              </div>
 
-              <p><strong>Inquiry Type:</strong> <span style="color: #00E5FF;">${inquiryType}</span></p>
-              <p><strong>Name:</strong> ${name}</p>
-              <p><strong>Email Address:</strong> <a href="mailto:${email}" style="color: #00E5FF;">${email}</a></p>
-              <p><strong>Organization:</strong> ${organization}</p>
+              <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 8px 0; color: #94A3B8; width: 140px; font-family: monospace; font-size: 12px;">NAME:</td>
+                  <td style="padding: 8px 0; color: #FFFFFF; font-weight: 500;">${name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #94A3B8; font-family: monospace; font-size: 12px;">EMAIL:</td>
+                  <td style="padding: 8px 0;"><a href="mailto:${email}" style="color: #00E5FF; text-decoration: none;">${email}</a></td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #94A3B8; font-family: monospace; font-size: 12px;">CONTACT NUMBER:</td>
+                  <td style="padding: 8px 0; color: #FFFFFF;">${phone || "Not provided"}</td>
+                </tr>
+              </table>
 
-              <div style="margin-top: 16px; background: #13161C; padding: 16px; border-radius: 6px; border: 1px solid #222933;">
-                <p style="color: #94A3B8; font-size: 12px; text-transform: uppercase; margin-top: 0;">Message:</p>
-                <p style="white-space: pre-wrap; font-family: sans-serif; font-size: 14px; line-height: 1.5;">${message}</p>
+              <div style="background: #13161C; padding: 20px; border-radius: 8px; border: 1px solid #222933;">
+                <p style="color: #94A3B8; font-size: 11px; font-family: monospace; text-transform: uppercase; margin: 0 0 10px 0;">Message / Enquiry:</p>
+                <p style="white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #E2E8F0; margin: 0;">${message}</p>
               </div>
             </div>
           `,
@@ -165,9 +208,8 @@ export async function sendContactEmail(payload: ContactEmailPayload): Promise<{ 
   console.log("📥 NEW CONTACT INQUIRY RECEIVED");
   console.log("==================================================");
   console.log(`To: ${Array.isArray(to) ? to.join(", ") : to}`);
-  console.log(`Inquiry Type: ${inquiryType}`);
   console.log(`Name: ${name} <${email}>`);
-  console.log(`Organization: ${organization}`);
+  console.log(`Phone: ${phone}`);
   console.log(`Message:\n${message}`);
   console.log("==================================================");
 

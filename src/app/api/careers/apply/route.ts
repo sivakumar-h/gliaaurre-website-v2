@@ -6,16 +6,21 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
 
-    const name = formData.get("name")?.toString();
-    const email = formData.get("email")?.toString();
-    const phone = formData.get("phone")?.toString();
-    const portfolio = formData.get("portfolio")?.toString();
-    const jobId = formData.get("jobId")?.toString();
-    const message = formData.get("message")?.toString();
+    const name = formData.get("name")?.toString()?.trim();
+    const email = formData.get("email")?.toString()?.trim();
+    const phone = formData.get("phone")?.toString()?.trim() || "";
+    const totalExperience = formData.get("totalExperience")?.toString()?.trim() || "";
+    const currentCtc = formData.get("currentCtc")?.toString()?.trim() || "";
+    const expectedCtc = formData.get("expectedCtc")?.toString()?.trim() || "";
+    const jobId = formData.get("jobId")?.toString()?.trim() || "";
+    const briefIntroduction =
+      formData.get("briefIntroduction")?.toString()?.trim() ||
+      formData.get("message")?.toString()?.trim() ||
+      "";
     const resumeFile = formData.get("resume") as File | null;
 
     // Validate essential fields
-    if (!name || !email || !jobId || !message) {
+    if (!name || !email || !jobId) {
       return NextResponse.json(
         { error: "Please provide all required fields." },
         { status: 400 }
@@ -32,16 +37,18 @@ export async function POST(request: Request) {
 
     if (!resumeFile) {
       return NextResponse.json(
-        { error: "Please attach your resume file." },
+        { error: "Please attach your resume file (PDF or DOC/DOCX)." },
         { status: 400 }
       );
     }
 
-    // Determine job title
-    let jobTitle = "General Engineering Exploration";
-    const foundJob = JOB_OPENINGS.find((j) => j.id === jobId);
+    // Determine target job title
+    let jobTitle = "Mechanical Design Engineer";
+    const foundJob = JOB_OPENINGS.find((j) => j.id === jobId || j.slug === jobId);
     if (foundJob) {
       jobTitle = foundJob.title;
+    } else if (jobId === "general-inquiry") {
+      jobTitle = "General Engineering Exploration";
     }
 
     // Convert file to base64 buffer for email attachment
@@ -49,23 +56,29 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(arrayBuffer);
     const resumeBase64 = buffer.toString("base64");
 
-    // Split comma-separated recipient list from env, e.g.
-    // OWNER_EMAIL=hr1@gliaaurre.com,divyam@gliaaurre.com,isha@gliaaurre.com
-    const ownerEmails = (process.env.OWNER_EMAIL || "careers@gliaaurre.com")
+    // Configurable HR / recruitment email address
+    const recipientEmails = (
+      process.env.HR_EMAIL ||
+      process.env.OWNER_EMAIL ||
+      process.env.CONTACT_EMAIL ||
+      "careers@gliaaurre.com"
+    )
       .split(",")
       .map((addr) => addr.trim())
       .filter(Boolean);
 
-    // Dispatch email to website owner(s)
+    // Dispatch email to HR
     await sendApplicationEmail({
-      to: ownerEmails,
-      subject: `[New Candidate Application] ${name} - ${jobTitle}`,
+      to: recipientEmails,
+      subject: `[New Application] ${name} - ${jobTitle}`,
       candidateName: name,
       candidateEmail: email,
       candidatePhone: phone,
-      portfolioUrl: portfolio,
+      totalExperience: totalExperience,
+      currentCtc: currentCtc,
+      expectedCtc: expectedCtc,
       jobTitle: jobTitle,
-      message: message,
+      briefIntroduction: briefIntroduction,
       resumeFileName: resumeFile.name,
       resumeFileSize: resumeFile.size,
       resumeFileBase64: resumeBase64,
