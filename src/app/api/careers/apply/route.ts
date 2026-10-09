@@ -58,9 +58,8 @@ export async function POST(request: Request) {
 
     // Configurable HR / recruitment email address
     const recipientEmails = (
-      process.env.HR_EMAIL ||
       process.env.OWNER_EMAIL ||
-      process.env.CONTACT_EMAIL ||
+      process.env.CONTACT_RECEIVER_EMAIL ||
       "careers@gliaaurre.com"
     )
       .split(",")

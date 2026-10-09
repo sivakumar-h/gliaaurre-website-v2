@@ -24,7 +24,6 @@ export async function POST(request: Request) {
 
     // Configurable recipient email address
     const recipientEmails = (
-      process.env.CONTACT_EMAIL ||
       process.env.CONTACT_RECEIVER_EMAIL ||
       process.env.OWNER_EMAIL ||
       "contact@gliaaurre.com"
